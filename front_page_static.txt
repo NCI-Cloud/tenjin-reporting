@@ -1,0 +1,54 @@
+h1. Cloud Overview - Usage information
+
+h2. Current Resources
+
++-------+-------+---------+---------+------+
+|       | Cores | Memory  | Storage | Ceph |
++-------+-------+---------+---------+------+
+| Avail |  1344 | 10587.3 |   59105 | ??   |
++-------+-------+---------+---------+------+
+| Used  |   375 | 2650.0  |   16530 | ??   |
++-------+-------+---------+---------+------+
+
+h2. Current Usage
+
+CPU Usage (current instances):
++-----------+-----------+----------+-------+
+| Instances | Wall Time | CPU Time | Usage |
++-----------+-----------+----------+-------+
+(simply the existing instances, with usage info from the reporting)
+
+CPU Usage (last x time period):
++-----------+-----------+----------+-------+
+| Instances | Wall Time | CPU Time | Usage |
++-----------+-----------+----------+-------+
+(this will be derived from the historical record once the logging/reporting
+is working)
+
+h2. Top Projects
+
+Projects using most resources:
++----------------------------------+-----------+-------+-----------+-------+
+| Project                          | Instances | Cores | Memory    | Disk  |
++----------------------------------+-----------+-------+-----------+-------+
+| 2a2ab30f55914654a717e0512d722132 |        19 |   263 | 1848.0000 | 11550 |
+| 1301861bf32f49088d3d547cde39d3db |        16 |    24 |  162.0000 |  1050 |
+| 03d1ae8e0e3444a0a2703792e5eba4cd |         5 |    36 |  256.0000 |  1600 |
+| b6bba9437ffb41d0b66898e51ad13bbe |         4 |    15 |  120.0000 |   750 |
+| 60a3db9b105b43ef9df21b3358e8afc7 |         3 |    20 |  152.0000 |   850 |
+| 4b85f2762d584fd6acc8029001997773 |         1 |     4 |   32.0000 |   200 |
+| b79d307b7ef04a82a0810b1008c7ed53 |         1 |     4 |    8.0000 |    80 |
+| 0b247bbafcde4ce1be0a6af5840ac388 |         1 |     1 |    8.0000 |    50 |
+| 4d73354076f54f969da94e431cb517f1 |         1 |     4 |   32.0000 |   200 |
+| fddc2327707b45518ffb481412026a9c |         1 |     4 |   32.0000 |   200 |
++----------------------------------+-----------+-------+-----------+-------+
+(should probably be limited to 5. Tese will include links to a project overview page)
+
+h2. Shit List
+
+Resources allocated but not used:
+(Allocated cores versus actual cpu time)
+(Biggest VMs with minimal usage)
+(?)
+
+

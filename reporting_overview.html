@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<head>
+    <title>
+    Tenjin Reporting
+    </title>
+</head>
+<body>
+
+    <h1>Tenjin Overview - Usage Information</h1>
+    <h2>Current Resources</h2>
+
+    <table>
+    <tr>
+	<th>&nbsp;</th>
+	<th>Cores</th>
+	<th>Memory</th>
+	<th>Storage</th>
+	<th>Ceph</th>
+    </tr>
+    <tr>
+	<td>Available</td>
+	<td>$VCPUS</td>
+	<td>$MEMORY_GB</td>
+	<td>$LOCAL_GB_TOTAL</td>
+	<td>$CEPH_AVAIL</td>
+    </tr>
+    <tr>
+	<td>Used</td>
+	<td>$VCPUS_USED</td>
+	<td>$MEMORY_GB_USED</td>
+	<td>$LOCAL_GB_USED</td>
+	<td>$CEPH_USED</td>
+    </tr>
+    </table>
+
+    <h2>Current Usage</h2>
+    <table>
+	<caption>CPU Usage (current instances)</caption>
+	<tr>
+	    <th>Instances</th>
+	    <th>Wall Time</th>
+	    <th>CPU Time</th>
+	    <th>Usage</th>
+	</tr>
+	<tr>
+	    <td>$INSTANCE_COUNT</td>
+	    <td>$WALL_TIME</td>
+	    <td>$CPU_TIME</td>
+	    <td>$USAGE</td>
+	</tr>
+    </table>
+    <table>
+	<caption>CPU Usage (last x time period)</caption>
+	<tr>
+	    <th>Instances</th>
+	    <th>Wall Time</th>
+	    <th>CPU Time</th>
+	    <th>Usage</th>
+	</tr>
+	<tr>
+	    <td>$INSTANCE_COUNT_HIST</td>
+	    <td>$WALL_TIME_HIST</td>
+	    <td>$CPU_TIME_HIST</td>
+	    <td>$USAGE_HIST</td>
+	</tr>
+    <table>
+
+    <h2>Top Projects</h2>
+    <table>
+	<caption>Top Five Projects by resource usage</caption>
+	<tr>
+	    <th>Project</th>
+	    <th>Instances</th>
+	    <th>Cores</th>
+	    <th>Memory</th>
+	    <th>Disk</th>
+	</tr>
+	<tr><td>2a2ab30f55914654a717e0512d722132</td><td>19</td><td>263</td><td>1848.0000</td><td>11550</td></tr>
+	<tr><td>1301861bf32f49088d3d547cde39d3db</td><td>16</td><td>24 </td><td>162.0000</td><td>1050</td></tr>
+	<tr><td>03d1ae8e0e3444a0a2703792e5eba4cd</td><td>5</td><td>36</td><td>256.0000</td><td>1600</td></tr>
+	<tr><td>b6bba9437ffb41d0b66898e51ad13bbe</td><td>4</td><td>15</td><td>120.0000</td><td>750</td></tr>
+	<tr><td>60a3db9b105b43ef9df21b3358e8afc7</td><td>3</td><td>20</td><td>152.0000</td><td>850</td></tr>
+    </table>
+</body>
+

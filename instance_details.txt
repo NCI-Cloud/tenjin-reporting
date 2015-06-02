@@ -1,0 +1,12 @@
+h1. Instance Details
+
+h2. Allocations
+
+(vcpus, memory, etc)
+
+h2. Usage
+
+(time series info of CPU usage)
+(efficiency of resource usage)
+
+h2. ??

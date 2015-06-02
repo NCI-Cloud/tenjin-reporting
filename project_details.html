@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<head>
+    <title>Project Details - $PROJECT_DISPLAY_NAME</title>
+</head>
+<body>
+    <h1>$PROJECT_DISPLAY_NAME</h1>
+    <h2>Aggregate View</h2>
+
+    <table>
+	<caption>Compute</caption>
+	<tr>
+	    <th>&nbsp;</th>
+	    <th>Instances</th>
+	    <th>VCPUS</th>
+	    <th>Memory</th>
+	    <th>Wall Time</th>
+	    <th>CPU Time</th>
+	</tr>
+	<tr>
+	    <td>Used</td>
+	    <td>$PROJECT_INSTANCES</td>
+	    <td>$PROJECT_VCPU_TOTAL</td>
+	    <td>$PROJECT_MEMORY_TOTAL</td>
+	    <td>$PROJECT_WALL_TIME_TOTAL</td>
+	    <td>$PROJECT_CPU_TIME_TOTAL</td>
+	</tr>
+	<tr>
+	    <td>Limit</td>
+	    <td>$PROJECT_INSTANCE_LIMIT</td>
+	    <td>$PROJECT_CORE_LIMIT</td>
+	    <td>$PROJECT_MEMORY_LIMIT</td>
+	    <td>N/A</td>
+	    <td>N/A</td>
+	</tr>
+    </table>
+    <table>
+	<caption>Storage</caption>
+	<tr>
+	    <th>&nbsp;</th>
+	    <th>Local</th>
+	    <th>Volume Total</th>
+	    <th>Snapshots</th>
+	    <th>Volumes</th>
+	</tr>
+	<tr>
+	    <td>Used</td>
+	    <td>$PROJECT_LOCAL_TOTAL</td>
+	    <td>$PROJECT_VOL_TOTAL</td>
+	    <td>$PROJECT_SNAPSHOTS</td>
+	    <td>$PROJECT_VOLUMES</td>
+	</tr>
+	<tr>
+	    <td>Limit</td>
+	    <td>N/A</td>
+	    <td>$PROJECT_VOL_TOTAL_LIMIT</td>
+	    <td>$PROJECT_SNAP_LIMIT</td>
+	    <td>$PROJECT_VOL_LIMIT</td>
+	</tr>
+    </table>
+
+    <h2>Instance Details</h2>
+
+    <p>Not implemented</p>
+
+</body>
+

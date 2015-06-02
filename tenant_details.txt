@@ -1,0 +1,19 @@
+h1. Project Details
+
+h2. Aggregates
+
+(aggregated usage/efficiency/etc info)
+(instance creation/deletion rates)
+(quotas and quota usage)
+
+h2. Instances
+
+(all instances, with stats/usage/etc)
+
+Name, vcpus, memory, local storage, volumes, cpu usage
+
+h2. Problem Instances
+
+(inactive instances)
+(instances with low usage)
+(instances with very high usage and low resource allocation)

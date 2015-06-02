@@ -1,0 +1,49 @@
+Cores allocated/cores available
+
+use nova;
+select sum(vcpus) from compute_nodes where deleted = 0;
+
+select sum(vcpus) from instances where deleted = 0;
+
+Memory allocated/available
+
+use nova;
+select sum(memory_mb)/1024 from compute_nodes where deleted = 0;
+
+select sum(memory_mb)/1024 from instances where deleted = 0;
+
+Storage (on disk, not in ceph)
+
+use nova;
+select sum(ephemeral_gb), sum(root_gb) from instances where deleted = 0;
+
+select sum(local_gb) from compute_nodes where deleted = 0;
+
+Ceph storage
+
+use cinder;
+select sum(size) from volumes where deleted = 0;
+
+Also see cinder quota-show and quota-usage
+
+Per-tenant usage . . .
+
+use nova;
+select project_id, count(*), sum(vcpus), sum(memory_mb)/1024, sum(ephemeral_gb+root_gb) from instances where deleted = 0 group by project_id order by count(*) desc;
+
+This then needs to be linked to the keystone DB.
+
+use cinder;
+select project_id, count(*), sum(size) from volumes where deleted = 0 group by project_id order by count(*) desc;
+
+Instance creation rates:
+
+use nova;
+select project_id, count(*) from instances where created_at > date("2015-04-01") and deleted_at < date("2015-05-01") group by project_id order by count(*) desc;
+
+Mapping between tenant ids and project names/info:
+
+keystone tenant-get <id>
+
+Linking with mancini to get additional information would be nice, but isn't 
+going to happen real soon.

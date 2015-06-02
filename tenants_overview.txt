@@ -1,0 +1,9 @@
+h1. Overview of Projects
+
+(list of projects, including quota information)
+(each links to tenant view for that tenant)
++---------+-----------+--------+---------+--------+
+| Project | Allocated | Active | Created | Quotas |
++---------+-----------+--------+---------+--------+
+(created shows the number of instances actually created, as opposed to just 
+the currently active ones)
