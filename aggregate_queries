@@ -47,3 +47,20 @@ keystone tenant-get <id>
 
 Linking with mancini to get additional information would be nice, but isn't 
 going to happen real soon.
+
+Usage stats stuff:
+Currently running against the test sqlite db
+
+To get the per-sample usage:
+
+select 
+	m.uuid, 
+	m.tstamp, 
+	(m.wall_time - m1.wall_time)*m.vcpus, 
+	round(m.cpu_time - m1.cpu_time, 1), 
+	round((m.cpu_time - m1.cpu_time)*100/((m.wall_time - m1.wall_time)*m.vcpus),1) as eff 
+from instance_stats as m join instance_stats as m1 
+on m.uuid = m1.uuid and m.tstamp < (m1.tstamp + 650) and m.tstamp > m1.tstamp 
+	order by m.uuid, m.tstamp;
+
+
