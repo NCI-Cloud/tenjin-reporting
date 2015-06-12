@@ -11,10 +11,12 @@
 import os
 import sys
 import sqlite3
+import gzip
 import pprint
 from datetime import datetime as dt
 import time
 import argparse
+import ConfigParser
 import mysql.connector
 from mysql.connector import errorcode
 
@@ -24,13 +26,15 @@ dbfile="/root/reporting/os_stats/test_stats.sqlite3"
 dbhost="localhost"
 dbname="stats"
 
+conffile = "/etc/os_stats.conf"
+
 class LogParser:
 	def __init__(self, db, args):
 		self.db = db
-		self.verbose = args.verbose
-		self.dry_run = args.dry_run
-		self.force = args.force
-		self.stats = args.stats
+		self.verbose = args['verbose']
+		self.dry_run = args['dry_run']
+		self.force = args['force']
+		self.stats = args['stats']
 		self.last_host_tstamp = 0.0
 		self.last_instance_tstamp = 0.0
 
@@ -161,6 +165,7 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	mysql_group = parser.add_argument_group("MySQL DB connection")
 	sqlite_group = parser.add_argument_group("SQLite3 DB connection")
+	parser.add_argument("--config", help="configuration file", default=conffile)
 	parser.add_argument("--logfile", nargs=1, help="path to os_stats logfile", default=[logfile])
 	parser.add_argument("-v", "--verbose", action='store_true', help="verbose processing")
 	parser.add_argument("-s", "--stats", action='store_true', default=False, help="print processing stats")
@@ -172,36 +177,86 @@ if __name__ == "__main__":
 	mysql_group.add_argument("--dbcred", help="MySQL user credentials to connect with. Takes the form user:password[@host[:db]]")
 	args = parser.parse_args()
 
-	log = open(args.logfile[0], "r")
+	config = ConfigParser.ConfigParser()
+	config_options = {
+		'force': False,
+		'verbose': False,
+		'dry_run': False,
+		'stats': True
+	}
+	try:
+		cf = open(conffile, "r")
+		config.readfp(cf)
+		# walk the configuration options
+		#
+		# the config file consists of a default section, and an optional mysql section.
+		# The contents match the command line arguments, and are overridden by the command
+		# line
+	
+		for section in config.sections():
+			config_options[section] = True
+			opts = config.items(section)
+			for (key, value) in opts:
+				config_options[key] = value
 
-	# without going the whole subparser route with this stuff, we'll have to manually
-	# figure out whether we want to connect to a MySQL db or the default sqlite3 db
-	#
-	# we default to the MySQL creds if they're supplied
-	if args.dbcred:
-		host="localhost"
-		dbname="stats"
-		# no default username and password - we fail if they're not properly
-		# supplied
-		upart = args.dbcred
-		if '@' in args.dbcred:
-			(upart, hpart) = args.dbcred.split('@')
-			host = hpart
-			if ':' in hpart:
-				(host, dbname) = hpart.split(':')
+	except IOError:
+		print "Config file %s not found" % (conffile)
+		config_options = {}
 
-		(uname, passwd) = upart.split(':')
-		config = {
+	pprint.pprint( config_options)
+	# pull in the command line arguments
+	for (key, value) in vars(args).items():
+		if value:
+			config_options[key] = value
+
+	pprint.pprint( config_options)
+
+	lfile = config_options['logfile'][0]
+	if lfile[-3:] == '.gz':
+		log = gzip.open(lfile)
+	else:
+		log = open(config_options['logfile'][0], "r")
+
+	if 'mysql' in config_options or 'dbcred' in config_options:
+		# no default username or password - we fail if they're not supplied
+		uname = ""
+		passwd = ""
+		host = "localhost"
+		dbname = "stats"
+		# these are used in the config file - there's no way to specify the
+		# user and password separately on the command line
+		if 'dbuser' in config_options:
+			uname = config_options['dbuser']
+		if 'dbpasswd' in config_options:
+			passwd = config_options['dbpasswd']
+		if 'dbhost' in config_options:
+			host = config_options['dbhost']
+		if 'dbname' in config_options:
+			dbname = config_options['dbname']
+		if 'dbcred' in config_options:
+			print config_options['dbcred']
+			upart = config_options['dbcred']
+			if '@' in config_options['dbcred']:
+				(upart, hpart) = config_options['dbcred'].split('@')
+				host = hpart
+				if ':' in hpart:
+					(host, dbname) = hpart.split(':')
+
+			# note that we specifically use a maxsplit value of 1 here, since
+			# the password may contain a ':' (even though it probably
+			# shouldn't, given it's the standard separator in passwd files)
+			(uname, passwd) = upart.split(':', 1)
+		mysql_config = {
 			'user': uname,
 			'password': passwd,
 			'host': host,
 			'database': dbname,
 		}
 
-		db = mysql.connector.connect(**config)
+		db = mysql.connector.connect(**mysql_config)
 	else:
-		db = sqlite3.connect(args.dbfile[0])
+		db = sqlite3.connect(config_options['dbfile'][0])
 
-	logparser = LogParser(db, args)
+	logparser = LogParser(db, config_options)
 	logparser.process_log_file(log)
 	logparser.cleanup()

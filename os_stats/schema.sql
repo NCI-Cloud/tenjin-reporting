@@ -30,3 +30,11 @@ create table stats.hosts (
 	key hosts_host_tstamp_index (host, tstamp)
 ) engine=InnoDB default charset=utf8;
 
+create user 'stats'@'%';
+GRANT USAGE ON *.* TO 'stats'@'%' IDENTIFIED BY PASSWORD '*896D4044A4633C57D99273884DCA3FB75C1CF206';
+GRANT ALL PRIVILEGES ON `stats`.* TO 'stats'@'%' WITH GRANT OPTION;
+
+create user 'stats'@'localhost';
+GRANT USAGE ON *.* TO 'stats'@'localhost' IDENTIFIED BY PASSWORD '*896D4044A4633C57D99273884DCA3FB75C1CF206';
+GRANT ALL PRIVILEGES ON `stats`.* TO 'stats'@'localhost' WITH GRANT OPTION;
+
