@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <head>
-    <title>Project Details - $PROJECT_DISPLAY_NAME</title>
+    <title>Project Details - {{ project.display_name }}</title>
 </head>
 <body>
-    <h1>$PROJECT_DISPLAY_NAME</h1>
+    <h1>{{ project.display_name }}</h1>
     <h2>Aggregate View</h2>
 
     <table>
@@ -18,17 +18,17 @@
 	</tr>
 	<tr>
 	    <td>Used</td>
-	    <td>$PROJECT_INSTANCES</td>
-	    <td>$PROJECT_VCPU_TOTAL</td>
-	    <td>$PROJECT_MEMORY_TOTAL</td>
-	    <td>$PROJECT_WALL_TIME_TOTAL</td>
-	    <td>$PROJECT_CPU_TIME_TOTAL</td>
+	    <td>{{ project.instance_count }}</td>
+	    <td>{{ project.vcpus }}</td>
+	    <td>{{ project.memory }}</td>
+	    <td>{{ project.wall_time }}</td>
+	    <td>{{ project.cpu_time }}</td>
 	</tr>
 	<tr>
 	    <td>Limit</td>
-	    <td>$PROJECT_INSTANCE_LIMIT</td>
-	    <td>$PROJECT_CORE_LIMIT</td>
-	    <td>$PROJECT_MEMORY_LIMIT</td>
+	    <td>{{ project.quota.instances }}</td>
+	    <td>{{ project.quota.vcpus }}</td>
+	    <td>{{ project.quota.memory }}</td>
 	    <td>N/A</td>
 	    <td>N/A</td>
 	</tr>
@@ -44,23 +44,43 @@
 	</tr>
 	<tr>
 	    <td>Used</td>
-	    <td>$PROJECT_LOCAL_TOTAL</td>
-	    <td>$PROJECT_VOL_TOTAL</td>
-	    <td>$PROJECT_SNAPSHOTS</td>
-	    <td>$PROJECT_VOLUMES</td>
+	    <td>{{ project.local }}</td>
+	    <td>{{ project.volume_total }}</td>
+	    <td>{{ project.snapshots }}</td>
+	    <td>{{ project.volume_count }}</td>
 	</tr>
 	<tr>
 	    <td>Limit</td>
 	    <td>N/A</td>
-	    <td>$PROJECT_VOL_TOTAL_LIMIT</td>
-	    <td>$PROJECT_SNAP_LIMIT</td>
-	    <td>$PROJECT_VOL_LIMIT</td>
+	    <td>{{ project.quota.volume_total }}</td>
+	    <td>{{ project.quota.snapshot }}</td>
+	    <td>{{ project.quota.volume_count }}</td>
 	</tr>
     </table>
 
     <h2>Instance Details</h2>
 
-    <p>Not implemented</p>
-
+    <table>
+	<caption>Project Instances</caption>
+	<tr>
+	    <th>Instance</th>
+	    <th>Cores</th>
+	    <th>Memory</th>
+	    <th>Local Storage</th>
+	    <th>Volume Storage</th>
+	    <th>Wall Time</th>
+	    <th>CPU Time</th>
+	</tr>
+	{% for instance in project.instances %}
+	<tr>
+	    <td>{{ instance.name }}</td>
+	    <td>{{ instance.vcpus }}</td>
+	    <td>{{ instance.memory }}</td>
+	    <td>{{ instance.local }}</td>
+	    <td>{{ instance.volume_total }}</td>
+	    <td>{{ intsance.wall_time }}</td>
+	    <td>{{ instance.cpu_time }}</td>
+	</tr>
+	{% endfor }%
 </body>
 
