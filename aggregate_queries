@@ -1,40 +1,177 @@
-Cores allocated/cores available
+Top Level:
 
-use nova;
-select sum(vcpus) from compute_nodes where deleted = 0;
+Resources:
 
-select sum(vcpus) from instances where deleted = 0;
+Available;
+select sum(vcpus) as Cores, sum(memory_mb)/1024 as Memory, sum(local_gb) as Storage from nova.compute_nodes where deleted = 0;
 
-Memory allocated/available
+Used:
+select sum(vcpus) as Cores, sum(memory_mb)/1024 as Memory, sum(ephemeral_gb) + sum(root_gb) as Storage from nova.instances where deleted 0;
 
-use nova;
-select sum(memory_mb)/1024 from compute_nodes where deleted = 0;
-
-select sum(memory_mb)/1024 from instances where deleted = 0;
-
-Storage (on disk, not in ceph)
-
-use nova;
-select sum(ephemeral_gb), sum(root_gb) from instances where deleted = 0;
-
-select sum(local_gb) from compute_nodes where deleted = 0;
-
-Ceph storage
-
-use cinder;
-select sum(size) from volumes where deleted = 0;
+select sum(size) from cinder.volumes where deleted = 0;
 
 Also see cinder quota-show and quota-usage
 
+CPU Usage:
+
+Per active instance:
+select 
+	si.uuid as uuid, 
+	ni.hostname as hostname, 
+	from_unixtime(si.tstamp) last_seen, 
+	si.wall_time*si.vcpus as wtime, 
+	si.cpu_time as ctime, 
+	round(si.cpu_time*100/(si.wall_time*si.vcpus),2) as eff 
+from 
+	stats.instances as si join nova.instances as ni on si.uuid = ni.uuid 
+where 
+	si.tstamp in 
+	(
+		select max(tstamp) from stats.instances group by uuid
+	) 
+	and ni.deleted = 0 
+group by si.uuid 
+order by eff;
+
+Aggregated across all active instances:
+select 
+	count(*) as Instances, 
+	round(sum(si2.wall_time*si2.vcpus)/86400,1) as "Wall Time (days)", 
+	round(sum(si2.cpu_time)/86400,1) as "CPU Time (days)", 
+	round(sum(si2.cpu_time)*100/(sum(si2.wall_time*si2.vcpus)),2) as "Usage (%)" 
+from 
+	stats.instances as si2 join 
+	(
+	select
+		si.*,
+		max(si.tstamp) as mtstamp 
+	from 
+		stats.instances as si join nova.instances as ni on si.uuid = ni.uuid 
+	where ni.deleted = 0 group by si.uuid
+	) 
+	as tmp on si2.uuid = tmp.uuid and si2.tstamp = tmp.mtstamp;
+
+Last seven days (including now-defunct instances):
+select          
+	count(*) as Instances,          
+	round(sum(si2.wall_time*si2.vcpus)/86400,1) as "Wall Time (days)",          
+	round(sum(si2.cpu_time)/86400,1) as "CPU Time (days)",          
+	round(sum(si2.cpu_time)*100/(sum(si2.wall_time*si2.vcpus)),2) as "Usage (%)"  
+from          
+	stats.instances as si2 join         
+	(         
+	select                  
+		si.*,                 
+		max(si.tstamp) as mtstamp         
+	from                  
+		stats.instances as si join nova.instances as ni on si.uuid = ni.uuid  
+	where 
+		from_unixtime(si.tstamp) > date_sub(now(), interval 7 day) 
+	group by si.uuid          
+	)          
+	as tmp on si2.uuid = tmp.uuid and si2.tstamp = tmp.mtstamp;
+
+Top five projects:
+select 
+	coalesce(kp.name, kp.description, kp.id) as project, 
+	count(*) as instances, 
+	sum(vcpus) as cores, 
+	round(sum(memory_mb)/1024,0) as memory, 
+	sum(ephemeral_gb + root_gb) as disk 
+from 
+	nova.instances as ni join keystone.project as kp on ni.project_id = kp.id 
+where 
+	ni.deleted = 0 
+group by ni.project_id 
+order by instances desc 
+limit 5;
+
 Per-tenant usage . . .
 
-use nova;
-select project_id, count(*), sum(vcpus), sum(memory_mb)/1024, sum(ephemeral_gb+root_gb) from instances where deleted = 0 group by project_id order by count(*) desc;
 
-This then needs to be linked to the keystone DB.
+select 
+	coalesce(kp.name, kp.description, kp.id) as project, 
+	count(t1_uuid) as active, 
+	count(t2_uuid) as allocated, 
+	count(ni.uuid) as created 
+from 
+	nova.instances as ni left join keystone.project as kp on ni.project_id = kp.id 
+	left join 
+	(
+	select 
+		uuid as t2_uuid 
+	from 
+		nova.instances 
+	where 
+		deleted = 0
+	) 
+	as t2 on ni.uuid = t2_uuid 
+	left join 
+	(
+	select 
+		uuid as t1_uuid 
+	from 
+		nova.instances 
+	where 
+		vm_state = "ACTIVE"
+	) 
+	as t1 on ni.uuid = t1_uuid 
+group by kp.id 
+order by active desc;
 
-use cinder;
-select project_id, count(*), sum(size) from volumes where deleted = 0 group by project_id order by count(*) desc;
+Note that this seems to produce some null keystone.project rows - I need to think about this in some more detail.
+
+
+Volumes and snapshots:
+
+Not elegant, but it works:
+
+select 
+	coalesce(kp.name, kp.description, kp.id) as project, 
+	ifnull(cv.volumes, 0) as volumes, 
+	ifnull(cv.mounted, 0) as mounted, 
+	ifnull(cs.snapshots, 0) as snapshots,
+	ifnull(ni.local, 0) as local, 
+	ifnull(cv.total, 0) as cinder
+
+from 
+	keystone.project as kp 
+	left join 
+	(
+	select 
+		project_id, 
+		sum(ephemeral_gb + root_gb) as local 
+	from 
+		nova.instances 
+	where deleted = 0 
+	group by project_id
+	) 
+	as ni on ni.project_id = kp.id 
+	left join 
+	(
+	select 
+		project_id, 
+		count(id) as volumes, 
+		count(mountpoint) as mounted, 
+		sum(size) as total 
+	from 
+		cinder.volumes 
+	where deleted = 0 
+	group by project_id
+	) 
+	as cv on cv.project_id = kp.id 
+	left join 
+	(
+	select 
+		project_id, 
+		count(id) as snapshots 
+	from 
+		cinder.snapshots 
+	where deleted = 0 
+	group by project_id
+	) 
+	as cs on cs.project_id = kp.id 
+order by volumes desc;
 
 Instance creation rates:
 
@@ -56,11 +193,11 @@ To get the per-sample usage:
 select 
 	m.uuid, 
 	m.tstamp, 
-	(m.wall_time - m1.wall_time)*m.vcpus, 
-	round(m.cpu_time - m1.cpu_time, 1), 
+	(m.wall_time - m1.wall_time)*m.vcpus as wtime, 
+	round(m.cpu_time - m1.cpu_time, 1) as ctime, 
 	round((m.cpu_time - m1.cpu_time)*100/((m.wall_time - m1.wall_time)*m.vcpus),1) as eff 
-from instance_stats as m join instance_stats as m1 
-on m.uuid = m1.uuid and m.tstamp < (m1.tstamp + 650) and m.tstamp > m1.tstamp 
+from stats.instances as m join stats.instances as m1 
+on m.uuid = m1.uuid and m.tstamp - m1.tstamp < 650 and m.tstamp - m1.tstamp > 550
 	order by m.uuid, m.tstamp;
 
 
