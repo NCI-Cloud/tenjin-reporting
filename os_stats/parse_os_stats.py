@@ -203,13 +203,10 @@ if __name__ == "__main__":
 		print "Config file %s not found" % (conffile)
 		config_options = {}
 
-	pprint.pprint( config_options)
 	# pull in the command line arguments
 	for (key, value) in vars(args).items():
 		if value:
 			config_options[key] = value
-
-	pprint.pprint( config_options)
 
 	lfile = config_options['logfile'][0]
 	if lfile[-3:] == '.gz':
