@@ -17,74 +17,58 @@ Quotas:
 The nova quotas are fairly simple, since they're a single value per resource. The cinder quotas specify
 quotas for all the nodes as well as the top level - to get the total we add them all up.
 
-Note that the process of adding the cinder quotas up is slightly incorrect, since a value of -1 is used
-as a flag indicating an unlimited quota. I'm not sure how to deal with this, but for now just adding it
-all up seems reasonable.
+Note that there are two disjoint sets in the quotas: globally defined, with no node level quota, or no
+global quota (with the value -1 for those resource entries), with all the quotas defined at the node level.
 
-select 
-	distinct t.project_id as project, 
-	i.hard_limit as instances, 
+select
+	distinct t.project_id as project,
+	i.hard_limit as instances,
 	c.hard_limit as cores,
 	r.hard_limit as ram,
 	g.total_limit as gigabytes,
 	v.total_limit as volumes,
 	s.total_limit as snapshots
-from 
-	nova.quotas as t join 
+from
+	nova.quotas as t join
 	(
-	select 
-		* 
-	from 
-		nova.quotas 
+	select  *  from  nova.quotas
 	where deleted = 0 and resource = 'ram'
-	) as r on t.project_id = r.project_id join 
+	) as r on t.project_id = r.project_id join
 	(
-	select 
-		* 
-	from 
-		nova.quotas 
+	select  *  from  nova.quotas
 	where deleted = 0 and resource = 'instances'
-	) as i on t.project_id = i.project_id join 
+	) as i on t.project_id = i.project_id join
 	(
-	select 
-		* 
-	from 
-		nova.quotas 
+	select  *  from  nova.quotas
 	where deleted = 0 and resource = 'cores'
 	) as c on t.project_id = c.project_id join
 	(
-	select 
-		project_id, 
-		sum(hard_limit) as total_limit 
-	from 
-		cinder.quotas 
-	where 
-		deleted = 0 and resource like 'gigabytes%' 
+	select
+		project_id,
+		sum(if(hard_limit>=0,hard_limit,0)) as total_limit
+	from
+		cinder.quotas
+	where deleted = 0 and resource like 'gigabytes%'
 	group by project_id
-	) 
-	as g on t.project_id = g.project_id join 
+	) as g on t.project_id = g.project_id join
 	(
-	select 
-		project_id, 
-		sum(hard_limit) as total_limit 
-	from 
-		cinder.quotas 
-	where 
-		deleted = 0 and resource like 'volumes%'
-	 group by project_id
-	) 
-	as v on t.project_id = v.project_id join 
-	(
-	select 
-		project_id, 
-		sum(hard_limit) as total_limit 
-	from 
-		cinder.quotas 
-	where 
-		deleted = 0 and resource like 'snapshots%' 
+	select
+		project_id,
+		sum(if(hard_limit>=0,hard_limit,0)) as total_limit
+	from
+		cinder.quotas
+	where deleted = 0 and resource like 'volumes%'
 	group by project_id
-	) 
-	as s on t.project_id = s.project_id;
+	) as v on t.project_id = v.project_id join
+	(
+	select
+		project_id,
+		sum(if(hard_limit>=0,hard_limit,0)) as total_limit
+	from
+		cinder.quotas
+	where deleted = 0 and resource like 'snapshots%'
+	group by project_id
+	) as s on t.project_id = s.project_id;
 
 with an optional:
 where
